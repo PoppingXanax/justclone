@@ -17,12 +17,14 @@ This script is designed to scrape a website and download its CSS files, JS files
 - Beautiful Soup library: `pip install beautifulsoup4`
 - Colorama library: `pip install colorama`
 
+- Install all: `pip install -r requirements.txt`
+
 ## Usage
 
 1. Clone the repository or download the script file.
 2. Install the required libraries mentioned above, if not already installed.
 3. Open a terminal or command prompt and navigate to the directory containing the script.
-4. Run the script using the command: `python script.py`
+4. Run the script using the command: `python main.py`
 5. Enter the URL of the website you want to scrape when prompted.
 6. Wait for the script to complete the scraping process.
 7. The downloaded files will be stored in separate directories (css, js, imgs) under the website's domain name.
