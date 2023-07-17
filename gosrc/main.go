@@ -51,7 +51,7 @@ func intro() {
 	fmt.Printf("%s ", cyan("[Console] =>"))
 	fmt.Printf("%s %s %s\n", white("Version"), cyan("0.0.1"), "| 17th July, 2023")
 	fmt.Printf("%s ", cyan("[Console] =>"))
-	fmt.Println("Coded by " + cyan("God"))
+	fmt.Println("Coded by " + cyan("PoppingXanax"))
 }
 
 func getInputURL() string {
