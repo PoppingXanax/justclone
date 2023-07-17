@@ -27,6 +27,7 @@ This script is designed to scrape a website and download its CSS files, JS files
 6) The downloaded files will be stored in separate directories (css, js, imgs, etc) under the website's domain name.
 7) The updated HTML file with local references will be saved as index.html in the website's directory.
 
+You may need to run `chmod +x justclone`
 
 ## Limitations
 
