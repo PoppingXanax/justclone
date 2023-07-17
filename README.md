@@ -29,6 +29,19 @@ This script is designed to scrape a website and download its CSS files, JS files
 
 You may need to run `chmod +x justclone`
 
+## Todo List
+
+- Proxy Support
+- Browser mode (for scraping sites with JS related challenges)
+- User-Agent use
+- HTML Parsing Improvements
+- Metadata Extraction
+- Interactive Mode (add an interactive mode where users can dynamically input URLs to scrape without relaunching the application each time)
+- Cache improvements
+- Better error logging
+- Rate limit bypassing
+- Authentication Support (if the website requires authentication or session management, add support for handling login credentials and maintaining authenticated sessions during the scraping process)
+
 ## Limitations
 
 - The script may encounter connection issues with certain websites, especially if they have strict security measures or block scraping activities. In such cases, it may fail to download certain files or raise connection errors.
@@ -38,4 +51,4 @@ You may need to run `chmod +x justclone`
 
 This script is provided as-is without any warranty. Use it responsibly and make sure to comply with the website's terms of service and legal requirements when scraping websites.
 
-Please note that the Go version of the script is still under development. It aims to provide similar functionality but may have some variations compared to the Python version. Make sure to check the documentation and adjust the usage accordingly when using the Go version of the script.
+
