@@ -2,7 +2,7 @@
 
 This script is designed to scrape a website and download its CSS files, JS files, and images. It also updates the HTML file with local references to the downloaded files.
 
-FYI: Right now it only scrapes the index page. I will update the script to scrape all URLs, then save each CSS, JS, Img file correspondingly 
+FYI: Right now it only scrapes the index page. I will update the script to scrape all URLs, then save each CSS, JS, IMG, file correspondingly.
 
 ## Features
 
