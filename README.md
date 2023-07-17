@@ -41,6 +41,7 @@ You may need to run `chmod +x justclone`
 - Better error logging ❌
 - Rate limit bypassing ❌
 - Authentication Support (if the website requires authentication or session management, add support for handling login credentials and maintaining authenticated sessions during the scraping process) ❌
+- Pre-set cookie(s) ❌
 
 ## Limitations
 
