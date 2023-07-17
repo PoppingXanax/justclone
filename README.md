@@ -1,4 +1,4 @@
-# Website Scraping Script
+### Website Scraping Script
 
 This script is designed to scrape a website and download its CSS files, JS files, and images. It also updates the HTML file with local references to the downloaded files.
 
@@ -12,23 +12,21 @@ This script is designed to scrape a website and download its CSS files, JS files
 
 ## Requirements
 
-- Python 3.x
-- Requests library: `pip install requests`
-- Beautiful Soup library: `pip install beautifulsoup4`
-- Colorama library: `pip install colorama`
-
-- Install all: `pip install -r requirements.txt`
+- Go 1.16 or higher
+- `go get github.com/common-nighthawk/go-figure`
+- `go get github.com/PuerkitoBio/goquery`
+- `go get github.com/fatih/color`
 
 ## Usage
 
-1. Clone the repository or download the script file.
-2. Install the required libraries mentioned above, if not already installed.
-3. Open a terminal or command prompt and navigate to the directory containing the script.
-4. Run the script using the command: `python main.py`
-5. Enter the URL of the website you want to scrape when prompted.
-6. Wait for the script to complete the scraping process.
-7. The downloaded files will be stored in separate directories (css, js, imgs) under the website's domain name.
-8. The updated HTML file with local references will be saved as `index.html` in the website's directory.
+1) Clone the repository or download the script file.
+2) Build the project using the command go build.
+3) Run the executable using ./main.
+4) Enter the URL of the website you want to scrape when prompted.
+5) Wait for the script to complete the scraping process.
+6) The downloaded files will be stored in separate directories (css, js, imgs, etc) under the website's domain name.
+7) The updated HTML file with local references will be saved as index.html in the website's directory.
+
 
 ## Limitations
 
@@ -38,3 +36,5 @@ This script is designed to scrape a website and download its CSS files, JS files
 ## Disclaimer
 
 This script is provided as-is without any warranty. Use it responsibly and make sure to comply with the website's terms of service and legal requirements when scraping websites.
+
+Please note that the Go version of the script is still under development. It aims to provide similar functionality but may have some variations compared to the Python version. Make sure to check the documentation and adjust the usage accordingly when using the Go version of the script.
