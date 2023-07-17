@@ -31,16 +31,16 @@ You may need to run `chmod +x justclone`
 
 ## Todo List
 
-- Proxy Support
-- Browser mode (for scraping sites with JS related challenges)
-- User-Agent use
-- HTML Parsing Improvements
-- Metadata Extraction
-- Interactive Mode (add an interactive mode where users can dynamically input URLs to scrape without relaunching the application each time)
-- Cache improvements
-- Better error logging
-- Rate limit bypassing
-- Authentication Support (if the website requires authentication or session management, add support for handling login credentials and maintaining authenticated sessions during the scraping process)
+- Proxy Support ❌
+- Browser mode (for scraping sites with JS related challenges) ❌
+- User-Agent use ❌
+- HTML Parsing Improvements ❌
+- Metadata Extraction ❌
+- Interactive Mode (add an interactive mode where users can dynamically input URLs to scrape without relaunching the application each time) ❌
+- Cache improvements ❌
+- Better error logging ❌
+- Rate limit bypassing ❌
+- Authentication Support (if the website requires authentication or session management, add support for handling login credentials and maintaining authenticated sessions during the scraping process) ❌
 
 ## Limitations
 
