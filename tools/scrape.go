@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/common-nighthawk/go-figure"
 	"github.com/fatih/color"
 )
 
@@ -176,21 +175,4 @@ func removeTrailingSlash(u string) string {
 		u = u[:len(u)-1]
 	}
 	return u
-}
-
-
-func intro() {
-	asciiArt := figure.NewFigure("scrape", "", true)
-	fmt.Println(asciiArt.String())
-
-	red := color.New(color.FgRed).SprintFunc()
-	cyan := color.New(color.FgCyan).SprintFunc()
-	white := color.New(color.FgWhite).SprintFunc()
-
-	fmt.Printf("%s %s\n", red("Dev Alert: There is a slight bug with fonts, but the cloned site should look 98% identical"), red("\n"))
-	fmt.Printf("%s ", cyan("[Console] =>"))
-	fmt.Printf("%s %s %s\n", white("Version"), cyan("0.0.1"), "| 19th July, 2023")
-	fmt.Printf("%s ", cyan("[Console] =>"))
-	fmt.Println("Coded by " + cyan("alex"))
-	fmt.Println()
 }
