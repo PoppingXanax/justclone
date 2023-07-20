@@ -24,10 +24,9 @@ FYI: Right now it only scrapes the index page. I will update the script to scrap
 1) Clone the repository or download the script file.
 2) Build the project using the command go build.
 3) Run the executable using ./main.
-4) Enter the URL of the website you want to scrape when prompted.
-5) Wait for the script to complete the scraping process.
-6) The downloaded files will be stored in separate directories (css, js, imgs, etc) under the website's domain name.
-7) The updated HTML file with local references will be saved as index.html in the website's directory.
+4) Wait for the script to complete the scraping process.
+5) The downloaded files will be stored in separate directories (css, js, imgs, etc) under the website's domain name.
+6) The updated HTML file with local references will be saved as index.html in the website's directory.
 
 You may need to run `chmod +x justclone`
 
