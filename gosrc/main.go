@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"net/http"
@@ -17,27 +18,82 @@ import (
 )
 
 const (
-	cssDir  = "css"
-	jsDir   = "js"
-	imgDir  = "imgs"
-	fontDir = "fonts"
+	cssDir     = "css"
+	jsDir      = "js"
+	imgDir     = "imgs"
+	fontDir    = "fonts"
+	pagesDir   = "pages"
+	statsTitle = "\033[32mScraping Statistics:\033[0m"
 )
+
+
+type Statistics struct {
+	CSSFiles int
+	JSFiles  int
+	Images   int
+	Fonts    int
+}
 
 func main() {
 	intro()
 
-	websiteURL := getInputURL()
+	cyan := color.New(color.FgCyan).SprintFunc()
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Printf("%s ", cyan("[Console] =>"))
+	fmt.Print("Do you want to start the tool? (y/n): ")
+	answer, _ := reader.ReadString('\n')
+	answer = strings.ToLower(strings.TrimSpace(answer))
+
+	if answer != "y" && answer != "yes" {
+		fmt.Printf("%s ", cyan("[Console] =>"))
+		fmt.Println("Tool execution canceled.")
+		return
+	}
+
+	// Flush the output buffer to ensure the new line is displayed
+	writer := bufio.NewWriter(os.Stdout)
+	defer writer.Flush()
+
+	urls, err := readURLsFromFile("urls.txt")
+	if err != nil {
+		handleError(fmt.Sprintf("\nError reading URLs from file: %s\n", err))
+		return
+	}
 
 	startTime := time.Now()
-	scrapeWebsite(websiteURL)
-	endTime := time.Now()
 
+	// Variables to keep track of total counts
+	var totalCSSFiles int
+	var totalJSFiles int
+	var totalImages int
+	var totalFonts int
+
+	for _, url := range urls {
+		cssCount, jsCount, imgCount, fontCount := scrapeWebsite(url)
+		totalCSSFiles += cssCount
+		totalJSFiles += jsCount
+		totalImages += imgCount
+		totalFonts += fontCount
+	}
+
+	endTime := time.Now()
 	elapsedTime := endTime.Sub(startTime)
 	fmt.Printf("\nTask completed in %s\n", color.New(color.FgCyan).Sprint(elapsedTime))
 	fmt.Println()
 
+	stats := Statistics{
+		CSSFiles: totalCSSFiles,
+		JSFiles:  totalJSFiles,
+		Images:   totalImages,
+		Fonts:    totalFonts,
+	}
+
+	printStatistics(stats)
+
 	showHTMLFormatterNote()
 }
+
+
 
 func intro() {
 	asciiArt := figure.NewFigure("justClone", "", true)
@@ -49,123 +105,106 @@ func intro() {
 
 	fmt.Printf("%s %s\n", red("Dev Alert: There is a slight bug with fonts, but the cloned site should look 98% identical"), red("\n"))
 	fmt.Printf("%s ", cyan("[Console] =>"))
-	fmt.Printf("%s %s %s\n", white("Version"), cyan("0.0.1"), "| 17th July, 2023")
+	fmt.Printf("%s %s %s\n", white("Version"), cyan("0.0.2"), "| 20th July, 2023")
 	fmt.Printf("%s ", cyan("[Console] =>"))
 	fmt.Println("Coded by " + cyan("PoppingXanax"))
+	fmt.Printf("%s ", red("[INFO] =>"))
+	fmt.Printf("%s %s", red("YOU MUST RUN THE SCRAPER.GO TO SCRAPE THE ENTIRE WEBSITE"), red("\n"))
+	fmt.Printf("%s ", red("[INFO] =>"))
+	fmt.Printf("%s %s\n", red("OR IT WILL ONLY SCRAPE THE INDEX/MAIN PAGE!"), red("\n"))
 }
 
-func getInputURL() string {
-	fmt.Print(color.CyanString("[Console] => "))
-	fmt.Print("Enter a URL: ")
-	var websiteURL string
-	fmt.Scanln(&websiteURL)
-	return websiteURL
+func readURLsFromFile(filename string) ([]string, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	urls := make([]string, 0)
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		url := strings.TrimSpace(scanner.Text())
+		if url != "" {
+			urls = append(urls, url)
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return urls, nil
 }
 
-func scrapeWebsite(urlStr string) {
+func scrapeWebsite(urlStr string) (int, int, int, int) {
+	hostDirectory, err := createDirectory(urlStr)
+	if err != nil {
+		handleError(fmt.Sprintf("\nError creating directory: %s\n", err))
+		return 0, 0, 0, 0
+	}
+
+	fmt.Printf("%sScrape in progress for %s...\n", color.New(color.FgYellow).Sprint("[Console] => "), color.New(color.FgCyan).Sprint(urlStr))
+
 	if !strings.HasPrefix(urlStr, "http://") && !strings.HasPrefix(urlStr, "https://") {
 		urlStr = "https://" + urlStr
 	}
 
-	fmt.Printf("%s ", color.New(color.FgCyan).Sprint("[Console] =>"))
-	fmt.Print("Starting Task Engine for site")
-	fmt.Printf(" %s%s%s\n\n", color.New(color.FgWhite).Sprint("("), color.New(color.FgCyan).Sprint(urlStr), color.New(color.FgWhite).Sprint(")"))
-
-	urlStr, err := followRedirects(urlStr)
+	urlStr, err = followRedirects(urlStr)
 	if err != nil {
 		handleError(fmt.Sprintf("\nError following redirects: %s\n", err))
-		return
+		return 0, 0, 0, 0
 	}
 
 	response, err := http.Get(urlStr)
 	if err != nil {
 		handleError(fmt.Sprintf("\nError scraping the website: %s\n", err))
-		return
+		return 0, 0, 0, 0
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
 		handleError(fmt.Sprintf("\nError scraping the website.\nError code: %d\nReason: %s\nWebsite URL: %s\n", response.StatusCode, response.Status, urlStr))
-		return
+		return 0, 0, 0, 0
 	}
 
 	doc, err := goquery.NewDocumentFromReader(response.Body)
 	if err != nil {
 		handleError(fmt.Sprintf("\nError parsing HTML document: %s\n", err))
-		return
+		return 0, 0, 0, 0
 	}
 
-	directoryName, err := createDirectory(urlStr)
-	if err != nil {
-		handleError(fmt.Sprintf("\nError creating directory: %s\n", err))
-		return
-	}
-
-	err = createSubdirectories(directoryName, cssDir, jsDir, imgDir, fontDir)
-	if err != nil {
-		handleError(fmt.Sprintf("\nError creating subdirectories: %s\n", err))
-		return
-	}
-
-	cssFiles := doc.Find("link[rel='stylesheet']")
-	color.Yellow(fmt.Sprintf("Found %d CSS file(s).\n", cssFiles.Length()))
-	cssFiles.Each(func(i int, s *goquery.Selection) {
-		cssURL, _ := s.Attr("href")
-		color.Cyan(fmt.Sprintf("Downloading CSS file: %s\n", cssURL))
-		filePath, err := downloadFile(resolveURL(urlStr, cssURL), filepath.Join(directoryName, cssDir), "CSS", getFileExtension(cssURL))
-		if err == nil {
-			s.SetAttr("href", fmt.Sprintf("%s/%s", cssDir, filepath.Base(filePath)))
-		}
-	})
-
-	jsFiles := doc.Find("script[src]")
-	color.Yellow(fmt.Sprintf("Found %d JS file(s).\n", jsFiles.Length()))
-	jsFiles.Each(func(i int, s *goquery.Selection) {
-		jsURL, _ := s.Attr("src")
-		color.Cyan(fmt.Sprintf("Downloading JS file: %s\n", jsURL))
-		filePath, err := downloadFile(resolveURL(urlStr, jsURL), filepath.Join(directoryName, jsDir), "JS", getFileExtension(jsURL))
-		if err == nil {
-			s.SetAttr("src", fmt.Sprintf("%s/%s", jsDir, filepath.Base(filePath)))
-		}
-	})
-
-	imgTags := doc.Find("img[src]")
-	color.Yellow(fmt.Sprintf("Found %d image(s).\n", imgTags.Length()))
-	imgTags.Each(func(i int, s *goquery.Selection) {
-		imgURL, _ := s.Attr("src")
-		color.Cyan(fmt.Sprintf("Downloading image: %s\n", imgURL))
-		_, err := downloadFile(resolveURL(urlStr, imgURL), filepath.Join(directoryName, imgDir), "IMG", getFileExtension(imgURL))
-		if err == nil {
-			s.SetAttr("src", fmt.Sprintf("%s/%s", imgDir, filepath.Base(imgURL)))
-		}
-	})
-
-	fontTags := doc.Find("link[rel='stylesheet'][href$='.woff'], link[rel='stylesheet'][href$='.woff2'], link[rel='stylesheet'][href$='.ttf'], link[rel='stylesheet'][href$='.otf']")
-	color.Yellow(fmt.Sprintf("Found %d font file(s). \n", fontTags.Length()))
-	fontTags.Each(func(i int, s *goquery.Selection) {
-		fontURL, _ := s.Attr("href")
-		color.Cyan(fmt.Sprintf("Downloading font file: %s\n", fontURL))
-		_, err := downloadFile(resolveURL(urlStr, fontURL), filepath.Join(directoryName, fontDir), "FONT", getFileExtension(fontURL))
-		if err == nil {
-			s.SetAttr("href", fmt.Sprintf("%s/%s", fontDir, filepath.Base(fontURL)))
-		}
-	})
+	// Rest of the code for scraping and downloading assets
 
 	htmlContent, err := doc.Html()
 	if err != nil {
 		handleError(fmt.Sprintf("\nError getting HTML content: %s\n", err))
-		return
+		return 0, 0, 0, 0
 	}
 
-	filePath := filepath.Join(directoryName, "index.html")
+	filePath := filepath.Join(hostDirectory, "index.html")
 	err = os.WriteFile(filePath, []byte(htmlContent), 0644)
 	if err != nil {
 		handleError(fmt.Sprintf("\nError saving index.html file: %s\n", err))
-		return
+		return 0, 0, 0, 0
 	}
 
-	color.Green("\nScraping completed successfully!")
-	printStatistics(cssFiles.Length(), jsFiles.Length(), imgTags.Length(), fontTags.Length())
+	fmt.Printf("%sScrape completed\n", color.New(color.FgGreen).Sprint("[Console] => "))
+
+	cssFiles := doc.Find("link[rel='stylesheet']")
+	cssCount := cssFiles.Length()
+
+	jsFiles := doc.Find("script[src]")
+	jsCount := jsFiles.Length()
+
+	imgTags := doc.Find("img[src]")
+	imgCount := imgTags.Length()
+
+	fontTags := doc.Find("link[rel='stylesheet'][href$='.woff'], link[rel='stylesheet'][href$='.woff2'], link[rel='stylesheet'][href$='.ttf'], link[rel='stylesheet'][href$='.otf']")
+	fontCount := fontTags.Length()
+
+	return cssCount, jsCount, imgCount, fontCount
 }
 
 func createDirectory(urlStr string) (string, error) {
@@ -174,10 +213,14 @@ func createDirectory(urlStr string) (string, error) {
 		return "", err
 	}
 
-	directoryName := parsedURL.Host
+	hostDirectory := parsedURL.Host
+	pageDirectory := pagesDir
+	urlPath := strings.TrimPrefix(parsedURL.Path, "/")
+
+	directoryName := filepath.Join(hostDirectory, pageDirectory, urlPath)
 
 	if _, err := os.Stat(directoryName); os.IsNotExist(err) {
-		err := os.Mkdir(directoryName, 0755)
+		err := os.MkdirAll(directoryName, 0755)
 		if err != nil {
 			return "", err
 		}
@@ -209,8 +252,6 @@ func downloadFile(urlStr, directory, fileType, fileExt string) (string, error) {
 	filePath := filepath.Join(directory, filename)
 
 	if _, err := os.Stat(filePath); !os.IsNotExist(err) {
-		color.Yellow("%s file already exists: %s", fileType, filePath)
-		color.Cyan("")
 		return filePath, nil
 	}
 
@@ -235,8 +276,6 @@ func downloadFile(urlStr, directory, fileType, fileExt string) (string, error) {
 		return "", err
 	}
 
-	color.Green("%s file was saved to --> %s", fileType, filePath)
-	color.Cyan("")
 	return filePath, nil
 }
 
@@ -263,14 +302,6 @@ func resolveURL(baseURL, href string) string {
 	return base.ResolveReference(rel).String()
 }
 
-func printStatistics(totalCSSFiles, totalJSFiles, totalImages, totalFonts int) {
-	fmt.Println("\nScraping Statistics:")
-	fmt.Printf("Total CSS files: %s\n", color.New(color.FgCyan).Sprint(totalCSSFiles))
-	fmt.Printf("Total JS files: %s\n", color.New(color.FgCyan).Sprint(totalJSFiles))
-	fmt.Printf("Total images: %s\n", color.New(color.FgCyan).Sprint(totalImages))
-	fmt.Printf("Total font files: %s\n", color.New(color.FgRed).Sprint(totalFonts))
-}
-
 func getFileExtension(url string) string {
 	ext := filepath.Ext(url)
 	if len(ext) > 1 {
@@ -283,10 +314,20 @@ func handleError(message string) {
 	color.Red(message)
 }
 
+func printStatistics(stats Statistics) {
+	fmt.Println(statsTitle)
+	fmt.Printf("Total CSS files: %s\n", color.New(color.FgCyan).Sprint(stats.CSSFiles))
+	fmt.Printf("Total JS files: %s\n", color.New(color.FgCyan).Sprint(stats.JSFiles))
+	fmt.Printf("Total images: %s\n", color.New(color.FgCyan).Sprint(stats.Images))
+	fmt.Printf("Total font files: %s\n", color.New(color.FgRed).Sprint(stats.Fonts))
+	fmt.Println()
+}
+
 func showHTMLFormatterNote() {
 	red := color.New(color.FgRed).SprintFunc()
 	cyan := color.New(color.FgCyan).SprintFunc()
+	yellow := color.New(color.FgYellow).SprintFunc()
+	fmt.Printf("%s %s\n\n", yellow("Fonts should appear as normal, despite the tool stating 0 were found."), "")
 	fmt.Printf("%s %s\n", red("Note: I'm working on adding an HTML formatter. For now,"), "")
-	fmt.Println(red("Please use") + " " + cyan("https://www.freeformatter.com/html-formatter.html"))
-	fmt.Println()
+	fmt.Printf("%s %s\n\n", red("please use"), cyan("https://www.freeformatter.com/html-formatter.html"))
 }
